@@ -78,12 +78,4 @@ def upload_file():
                     }
         return Response(response=response, status=200, mimetype="application/json")
 
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
+    return Response(response={'request failed'}, status=400)

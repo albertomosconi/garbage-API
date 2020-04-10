@@ -3,14 +3,6 @@ import requests
 import cv2
 
 url = 'http://127.0.0.1:5000/'
-# f = open('file.txt', 'r')
-# f = Image.open("bottle.jpeg")
-# print(f)
-# files = {'file': open('bottle.jpeg', 'rb')}
-# values = {'DB': 'photcat', 'OUT': 'csv', 'SHORT': 'short'}
-
-# r = requests.post(url, files=files)
-
 
 # prepare headers for http request
 content_type = 'image/jpeg'
