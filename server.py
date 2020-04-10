@@ -9,11 +9,40 @@
 #     elif request.method == 'POST':
 #         return request.files
 import os
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 
+from PIL import Image
+
+import torch
+import torch.nn as nn
+from torchvision import models, transforms
+import cv2
+import numpy as np
+
+data_transforms = {
+    'val': transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
+
+imsize = 256
+loader = transforms.Compose([transforms.Scale(imsize), transforms.ToTensor()])
+
+
+def image_loader(loader, image_name):
+    image = Image.fromarray(image_name)
+    image = loader(image).float()
+    image = torch.tensor(image, requires_grad=True)
+    image = image.unsqueeze(0)
+    return image
+
+
 UPLOAD_FOLDER = 'prova/'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {"jpg", "png", "jpeg"}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -29,23 +58,26 @@ def allowed_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
+        r = request
+        # convert string of image data to uint8
+        nparr = np.fromstring(r.data, np.uint8)
+        # decode image
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        file = request.files['file']
-        print(file)
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('upload_file',
-                                    filename=filename))
+        model = models.resnet18(pretrained=True)
+        num_ftrs = model.fc.in_features
+        # Here the size of each output sample is set to 2.
+        # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
+        model.fc = nn.Linear(num_ftrs, 6)
+        model.load_state_dict(torch.load("model.pt"))
+        model.eval()
+        print(
+            model(image_loader(data_transforms['val'], img)).detach().numpy())
+
+        response = {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])
+                    }
+        return Response(response=response, status=200, mimetype="application/json")
+
     return '''
     <!doctype html>
     <title>Upload new File</title>
