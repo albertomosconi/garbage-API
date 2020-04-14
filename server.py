@@ -77,5 +77,12 @@ def upload_file():
         response = {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])
                     }
         return Response(response=response, status=200, mimetype="application/json")
-
+    else:
+        response = {'text': 'image received. size='}
+        return Response(response=response, status=200, mimetype="text/plain")
     return Response(response={'request failed'}, status=400)
+    # return "hello"
+
+
+if __name__ == "__main__":
+    app.run(host="192.168.0.3", port=5010)
