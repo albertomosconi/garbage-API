@@ -9,16 +9,18 @@
 #     elif request.method == 'POST':
 #         return request.files
 import os
-from flask import Flask, flash, request, redirect, url_for, Response
+from flask import Flask, flash, request, jsonify, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 
 from PIL import Image
+import json
 
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 import cv2
 import numpy as np
+import base64
 
 data_transforms = {
     'val': transforms.Compose([
@@ -59,10 +61,23 @@ def allowed_file(filename):
 def upload_file():
     if request.method == 'POST':
         r = request
+        image = r.files.get("photo", '')
+        content = image.read()
         # convert string of image data to uint8
-        nparr = np.fromstring(r.data, np.uint8)
+        # print(data['image'])
+        # d = base64.decodebytes(data['image'])
+        with open("aaa.jpg", "wb") as f:
+            f.write(content)
+        # print(str(content))
+        nparr = np.frombuffer(content, dtype=np.uint8)
+        print(nparr, len(nparr))
         # decode image
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        width, height = len(img[0]), len(img)
+        cropped_image = img[int(width/2):-int(width/2)]
+        # cv2.imshow('image', cropped_image)
+        # cv2.waitKey(0)
 
         model = models.resnet18(pretrained=True)
         num_ftrs = model.fc.in_features
@@ -71,18 +86,30 @@ def upload_file():
         model.fc = nn.Linear(num_ftrs, 6)
         model.load_state_dict(torch.load("model.pt"))
         model.eval()
-        print(
-            model(image_loader(data_transforms['val'], img)).detach().numpy())
 
-        response = {'message': 'image received. size={}x{}'.format(img.shape[1], img.shape[0])
-                    }
-        return Response(response=response, status=200, mimetype="application/json")
-    else:
-        response = {'text': 'image received. size='}
-        return Response(response=response, status=200, mimetype="text/plain")
-    return Response(response={'request failed'}, status=400)
-    # return "hello"
+        pred = model(image_loader(
+            data_transforms['val'], cropped_image)).detach().numpy()
+        print(pred)
+
+        predicted_class = str(np.argmax(pred))
+        if predicted_class == '0':
+            predicted_class = 'cardboard'
+        elif predicted_class == '1':
+            predicted_class = 'glass'
+        elif predicted_class == '2':
+            predicted_class = 'metal'
+        elif predicted_class == '3':
+            predicted_class = 'paper'
+        elif predicted_class == '4':
+            predicted_class = 'plastic'
+        elif predicted_class == '5':
+            predicted_class = 'trash'
+
+        return jsonify('{"result":"' + predicted_class + '"}')
+    elif request.method == 'GET':
+        response = '{"name": "Brian", "city": "Seattle"}'
+        return jsonify(response)
 
 
 if __name__ == "__main__":
-    app.run(host="192.168.0.3", port=5010)
+    app.run(host="192.168.0.12", port=5010)
