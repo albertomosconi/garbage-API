@@ -74,7 +74,7 @@ def upload_file():
         # decode image
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        width, height = len(img[0]), len(img)
+        width = len(img[0])
         cropped_image = img[int(width/2):-int(width/2)]
         # cv2.imshow('image', cropped_image)
         # cv2.waitKey(0)
@@ -84,7 +84,7 @@ def upload_file():
         # Here the size of each output sample is set to 2.
         # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
         model.fc = nn.Linear(num_ftrs, 6)
-        model.load_state_dict(torch.load("model.pt"))
+        model.load_state_dict(torch.load("model.pt", map_location='cpu'))
         model.eval()
 
         pred = model(image_loader(
