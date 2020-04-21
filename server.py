@@ -111,5 +111,37 @@ def upload_file():
         return jsonify(response)
 
 
+@app.route('/store', methods=['GET', 'POST'])
+def store_file():
+    if request.method == 'POST':
+        r = request
+        image = r.files.get("photo", '')
+        label = r.files.get("label", '')
+        width = r.files.get("width", '')
+        content = image.read()
+        # convert string of image data to uint8
+        # print(data['image'])
+        # d = base64.decodebytes(data['image'])
+
+        # lokking for he highest number in the label
+        max = 0
+        dir = "/saved_photos/"+label
+        for file in os.listdir(dir):
+            number = os.path.splitext(file)[0]
+            n = int(number)
+            if(n > max):
+                max = n
+        number = dir + str(max+1) + ".jpg"
+
+        width = len(content)
+        cropped_image = content[int(width/2):-int(width/2)]
+
+        with open(number, "wb") as f:
+            f.write(cropped_image)
+
+        # cv2.imshow('image', cropped_image)
+        # cv2.waitKey(0)
+
+
 if __name__ == "__main__":
-    app.run(host="192.168.0.12", port=5010)
+    app.run(host="192.168.178.106", port=5010)
