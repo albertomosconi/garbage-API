@@ -120,4 +120,4 @@ def store_file():
 
 
 if __name__ == "__main__":
-    app.run(host="192.168.0.9", port=5010)
+    app.run(host="0.0.0.0", port=2000)
