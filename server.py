@@ -127,7 +127,7 @@ def store_file():
 
         # lokking for he highest number in the label
         max = 0
-        dir = "/saved_photos/"+label
+        dir = "saved_photos/"+label
 
         for dirname, _, filenames in os.walk(dir):
             for filename in filenames:
