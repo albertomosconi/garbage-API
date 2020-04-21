@@ -86,42 +86,35 @@ def upload_file():
 def store_file():
     if request.method == 'POST':
         r = request
-        print(r, r.files)
+        print(r, r.files, r.form)
         image = r.files.get("photo", '')
-        label = r.get("label")
-        width = r.get("width")
+        label = r.form.get("label")
+        width = r.form.get("width")
         content = image.read()
         print(label, width)
-        # convert string of image data to uint8
-        # print(data['image'])
-        # d = base64.decodebytes(data['image'])
 
-        # lokking for he highest number in the label
-        max = 0
-        dir = "saved_photos/"+label
+        # looking for he highest number in the label
+        maxN = 0
+        directory = "saved_photos/"+label+"/"
 
-        for dirname, _, filenames in os.walk(dir):
+        for dirname, _, filenames in os.walk(directory):
             for filename in filenames:
-                number = os.path.splitext(filename)[0]
+                print(filename, dirname)
+                noext = filename.split(".jpg")[0]
+                number = noext.split(label)[1]
+                print(number)
                 n = int(number)
-                if(n > max):
-                    max = n
+                if(n > maxN):
+                    maxN = n
 
-        # for file in os.listdir(dir):
-         #   number = os.path.splitext(file)[0]
-          #  n = int(number)
-           # if(n > max):
-            #    max = n
-        number = dir + "user" + label + str(max+1) + ".jpg"
+        number = directory + "/user" + label + str(maxN+1) + ".jpg"
         print(number)
         width = len(content)
+        print(width)
         cropped_image = content[int(width/2):-int(width/2)]
 
         with open(number, "wb") as f:
-            f.write(cropped_image)
-
-        # cv2.imshow('image', cropped_image)
-        # cv2.waitKey(0)
+            f.write(content)
 
 
 if __name__ == "__main__":
