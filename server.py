@@ -116,6 +116,8 @@ def store_file():
         with open(number, "wb") as f:
             f.write(content)
 
+        return jsonify('{"message":"Thank you!"}')
+
 
 if __name__ == "__main__":
     app.run(host="192.168.0.9", port=5010)
