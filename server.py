@@ -86,11 +86,12 @@ def upload_file():
 def store_file():
     if request.method == 'POST':
         r = request
+        print(r, r.files)
         image = r.files.get("photo", '')
-        label = r.files.get("label", '')
-        width = r.files.get("width", '')
-        print(image, label, width)
+        label = r.get("label")
+        width = r.get("width")
         content = image.read()
+        print(label, width)
         # convert string of image data to uint8
         # print(data['image'])
         # d = base64.decodebytes(data['image'])
@@ -98,14 +99,21 @@ def store_file():
         # lokking for he highest number in the label
         max = 0
         dir = "saved_photos/"+label
-        for file in os.listdir(dir):
-            print(file)
-            number = os.path.splitext(file)[0]
-            n = int(number)
-            if(n > max):
-                max = n
-        number = dir + str(max+1) + ".jpg"
 
+        for dirname, _, filenames in os.walk(dir):
+            for filename in filenames:
+                number = os.path.splitext(filename)[0]
+                n = int(number)
+                if(n > max):
+                    max = n
+
+        # for file in os.listdir(dir):
+         #   number = os.path.splitext(file)[0]
+          #  n = int(number)
+           # if(n > max):
+            #    max = n
+        number = dir + "user" + label + str(max+1) + ".jpg"
+        print(number)
         width = len(content)
         cropped_image = content[int(width/2):-int(width/2)]
 
